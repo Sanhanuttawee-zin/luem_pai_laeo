@@ -239,7 +239,7 @@ export function PreDepartureScreen() {
             />
             <button
               onClick={() => handleDeleteItem(item.id)}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-10"
+              className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-10"
               style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
               title="Delete item"
             >
