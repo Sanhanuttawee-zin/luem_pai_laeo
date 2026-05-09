@@ -167,7 +167,7 @@ export function RoutinesScreen({ routineType, onBack }: RoutinesScreenProps) {
         </div>
       </div>
 
-      <div className="px-6 space-y-2">
+      <div className="px-6 space-y-3">
         {items.map((item) => {
           const isChecked = checkedItems.has(item.id);
 

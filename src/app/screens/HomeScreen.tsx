@@ -57,9 +57,9 @@ export function HomeScreen({ onRoutineClick }: HomeScreenProps) {
 
   return (
     <div className="flex-1 overflow-y-auto pb-32">
-      <div className="px-6 pt-4 pb-6">
+      <div className="px-6 pt-6 pb-4">
         <h1
-          className="text-[28px] mb-1"
+          className="text-3xl mb-2"
           style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic' }}
         >
           {t('home.greeting')}

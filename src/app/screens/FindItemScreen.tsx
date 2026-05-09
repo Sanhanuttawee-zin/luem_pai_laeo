@@ -1,6 +1,45 @@
 import { MapPin, Volume2, Key, Wallet, Watch, Navigation, Radio, Pencil, Trash2, X, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useI18n } from '../i18n';
+
+// Fix default marker icon issue with bundlers
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+// Custom orange marker for items
+const itemIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:20px;height:20px;background:#E85D2A;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(232,93,42,0.3);display:flex;align-items:center;justify-content:center;">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  </div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
+
+// Custom blue marker for user location
+const userIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:24px;height:24px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(59,130,246,0.3);display:flex;align-items:center;justify-content:center;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+  </div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
+
+// Pinging marker
+const pingIcon = L.divIcon({
+  className: '',
+  html: `<div style="position:relative;">
+    <div style="position:absolute;width:32px;height:32px;background:#E85D2A;opacity:0.4;border-radius:50;top:50%;left:50%;transform:translate(-50%,-50%);animation:ping 1s cubic-bezier(0,0,0.2,1) infinite;"></div>
+    <div style="width:24px;height:24px;background:#E85D2A;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(232,93,42,0.3);display:flex;align-items:center;justify-content:center;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+  </div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
 
 interface LostItem {
   id: number;
@@ -140,146 +179,66 @@ export function FindItemScreen() {
         <div
           className="relative rounded-3xl overflow-hidden"
           style={{
-            backgroundColor: '#faf5ed',
             border: '1px solid #e7e5e4',
             height: '320px',
           }}
         >
-          {/* Grid background */}
-          <svg
-            className="absolute inset-0 w-full h-full opacity-20"
-            viewBox="0 0 400 320"
-            fill="none"
-          >
-            {Array.from({ length: 20 }).map((_, i) => (
-              <line
-                key={`v${i}`}
-                x1={i * 20}
-                y1="0"
-                x2={i * 20}
-                y2="320"
-                stroke="#d6d3d1"
-                strokeWidth="1"
+          {userLocation && (
+            <MapContainer
+              center={[userLocation.lat, userLocation.lng]}
+              zoom={17}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+              attributionControl={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-            ))}
-            {Array.from({ length: 16 }).map((_, i) => (
-              <line
-                key={`h${i}`}
-                x1="0"
-                y1={i * 20}
-                x2="400"
-                y2={i * 20}
-                stroke="#d6d3d1"
-                strokeWidth="1"
+
+              {/* User accuracy circle */}
+              <Circle
+                center={[userLocation.lat, userLocation.lng]}
+                radius={30}
+                pathOptions={{
+                  color: '#3b82f6',
+                  fillColor: '#3b82f6',
+                  fillOpacity: 0.15,
+                  weight: 1,
+                }}
               />
-            ))}
-          </svg>
 
-          {/* User location (center) */}
+              {/* User location marker */}
+              <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon} />
+
+              {/* Item markers */}
+              {items.map((item) => {
+                const isPinging = pingingItem === item.id;
+                const itemLat = userLocation.lat + item.y * 0.00003;
+                const itemLng = userLocation.lng + item.x * 0.00003;
+                return (
+                  <Marker
+                    key={item.id}
+                    position={[itemLat, itemLng]}
+                    icon={isPinging ? pingIcon : itemIcon}
+                  >
+                    <Popup>
+                      <span className="font-medium text-sm">{item.name}</span>
+                      <br />
+                      <span className="text-xs text-stone-500">{item.location}</span>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          )}
+
+          {/* Location status overlay */}
           <div
-            className="absolute"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {/* Accuracy circle */}
-            <div
-              className="absolute rounded-full"
-              style={{
-                width: '100px',
-                height: '100px',
-                backgroundColor: '#3b82f6',
-                opacity: 0.15,
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-              }}
-            />
-
-            {/* User marker */}
-            <div className="relative z-10">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center"
-                style={{
-                  backgroundColor: '#3b82f6',
-                  border: '3px solid #ffffff',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                }}
-              >
-                <Navigation
-                  className="w-3 h-3 text-white"
-                  strokeWidth={2.5}
-                  fill="white"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Item markers */}
-          {items.map((item) => {
-            const isPinging = pingingItem === item.id;
-            return (
-              <div
-                key={item.id}
-                className="absolute transition-all duration-300"
-                style={{
-                  top: `calc(50% + ${item.y}px)`,
-                  left: `calc(50% + ${item.x}px)`,
-                  transform: 'translate(-50%, -50%)',
-                }}
-              >
-                {/* Ping animation */}
-                {isPinging && (
-                  <div
-                    className="absolute inset-0 rounded-full animate-ping"
-                    style={{
-                      backgroundColor: '#E85D2A',
-                      opacity: 0.4,
-                      width: '32px',
-                      height: '32px',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                  />
-                )}
-
-                {/* Item marker */}
-                <div
-                  className="relative w-5 h-5 rounded-full flex items-center justify-center transition-transform"
-                  style={{
-                    backgroundColor: '#E85D2A',
-                    border: '2px solid #ffffff',
-                    boxShadow: '0 2px 8px rgba(232, 93, 42, 0.3)',
-                    transform: isPinging ? 'scale(1.2)' : 'scale(1)',
-                  }}
-                >
-                  <Radio className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                </div>
-
-                {/* Item label */}
-                <div
-                  className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-lg text-[10px] font-medium pointer-events-none"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e7e5e4',
-                    opacity: isPinging ? 1 : 0.7,
-                  }}
-                >
-                  {item.name}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Location status */}
-          <div
-            className="absolute top-4 left-4 px-3 py-2 rounded-xl text-xs font-medium z-10"
+            className="absolute top-4 left-4 px-3 py-2 rounded-xl text-xs font-medium"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(8px)',
+              zIndex: 1000,
             }}
           >
             <div className="flex items-center gap-1.5">
@@ -293,12 +252,13 @@ export function FindItemScreen() {
             </div>
           </div>
 
-          {/* Map legend */}
+          {/* Map legend overlay */}
           <div
-            className="absolute bottom-4 left-4 px-3 py-2 rounded-xl text-xs font-medium z-10"
+            className="absolute bottom-4 left-4 px-3 py-2 rounded-xl text-xs font-medium"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(8px)',
+              zIndex: 1000,
             }}
           >
             <div className="flex items-center gap-1.5 mb-0.5">
@@ -333,11 +293,11 @@ export function FindItemScreen() {
                 {/* Main item info */}
                 <div className="flex items-start gap-3 mb-3">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: '#faf5ed' }}
                   >
                     <Icon
-                      className="w-7 h-7 text-stone-700"
+                      className="w-6 h-6 text-stone-700"
                       strokeWidth={2}
                     />
                   </div>
