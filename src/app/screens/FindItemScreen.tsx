@@ -142,7 +142,8 @@ export function FindItemScreen() {
           style={{
             backgroundColor: '#e8e0d4',
             border: '1px solid #e7e5e4',
-            height: '320px',
+            height: '280px',
+            touchAction: 'pan-y',
           }}
         >
           {/* Static map background via SVG */}
