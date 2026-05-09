@@ -112,7 +112,9 @@ export function PreDepartureScreen() {
   const handleToggleCheck = (id: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
+        item.id === id
+          ? { ...item, checked: !item.checked, status: !item.checked ? 'found' : 'missing' }
+          : item
       )
     );
   };
