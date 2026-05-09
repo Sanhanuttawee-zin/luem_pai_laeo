@@ -124,27 +124,27 @@ export function FindItemScreen() {
 
   return (
     <div className="flex-1 overflow-y-auto pb-32">
-      <div className="px-6 pt-6 pb-4">
-        <h1
-          className="text-3xl mb-2"
-          style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic' }}
-        >
-          {t('find.title')}
-        </h1>
-        <p className="text-stone-500">
-          {t('find.subtitle')}
-        </p>
-      </div>
+      <div className="sticky top-0 z-10" style={{ backgroundColor: '#fdfaf3' }}>
+        <div className="px-6 pt-6 pb-4">
+          <h1
+            className="text-3xl mb-2"
+            style={{ fontFamily: 'Fraunces, serif', fontStyle: 'italic' }}
+          >
+            {t('find.title')}
+          </h1>
+          <p className="text-stone-500">
+            {t('find.subtitle')}
+          </p>
+        </div>
 
-      <div className="px-6 mb-6">
-        <div
-          className="relative rounded-3xl overflow-hidden"
-          style={{
-            backgroundColor: '#e8e0d4',
-            border: '1px solid #e7e5e4',
-            height: '280px',
-            touchAction: 'pan-y',
-          }}
+        <div className="px-6 pb-4">
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              backgroundColor: '#e8e0d4',
+              border: '1px solid #e7e5e4',
+              height: '240px',
+            }}
         >
           {/* Static map background via SVG */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 320" fill="none">
@@ -227,9 +227,10 @@ export function FindItemScreen() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
-      <div className="px-6">
+      <div className="px-6 pt-4">
         <h3 className="font-semibold text-stone-900 mb-3">{t('find.recentlyLost')}</h3>
 
         <div className="space-y-3">
