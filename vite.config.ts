@@ -18,6 +18,9 @@ function figmaAssetResolver() {
 
 export default defineConfig({
   base: '/luem_pai_laeo/',
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if

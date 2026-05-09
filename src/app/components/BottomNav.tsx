@@ -1,6 +1,8 @@
 import { Home, CheckCircle, Plane, MapPin } from 'lucide-react';
 import { useI18n } from '../i18n';
 
+declare const __BUILD_TIME__: string;
+
 type NavTab = 'home' | 'check' | 'trips' | 'find';
 
 interface BottomNavProps {
@@ -19,7 +21,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[428px] bg-white/95 backdrop-blur-xl border-t border-stone-200 px-4 pb-6 pt-2 z-50">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[428px] bg-white/95 backdrop-blur-xl border-t border-stone-200 px-4 pb-4 pt-2 z-50">
       <div className="flex items-center justify-around">
         {tabs.map(({ id, icon: Icon, labelKey }) => {
           const isActive = activeTab === id;
@@ -46,6 +48,9 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             </button>
           );
         })}
+      </div>
+      <div className="text-center text-[9px] text-stone-400 mt-1">
+        Deployed: {new Date(__BUILD_TIME__).toLocaleString()}
       </div>
     </div>
   );
