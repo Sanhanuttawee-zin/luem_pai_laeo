@@ -99,6 +99,8 @@ export function PreDepartureScreen() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReadyModal, setShowReadyModal] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState<Set<number>>(new Set());
   const [newItem, setNewItem] = useState({
     title: '',
     hasBLE: false,
@@ -128,6 +130,26 @@ export function PreDepartureScreen() {
 
   const handleDeleteItem = (id: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
+
+  const toggleSelectForDelete = (id: number) => {
+    setSelectedForDelete((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    setItems((prevItems) => prevItems.filter((item) => !selectedForDelete.has(item.id)));
+    setSelectedForDelete(new Set());
+    setDeleteMode(false);
+  };
+
+  const handleCancelDelete = () => {
+    setSelectedForDelete(new Set());
+    setDeleteMode(false);
   };
 
   const handleAddItem = async () => {
@@ -188,15 +210,49 @@ export function PreDepartureScreen() {
       <div className="px-6 pt-6 pb-4 sticky top-0 z-10" style={{ backgroundColor: '#fdfaf3' }}>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold text-stone-900">
-            {t('check.title')}
+            {deleteMode ? t('check.selectToDelete') || 'Select to delete' : t('check.title')}
           </h1>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
-            style={{ backgroundColor: '#E85D2A' }}
-          >
-            <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </button>
+          <div className="flex items-center gap-2">
+            {deleteMode ? (
+              <>
+                <button
+                  onClick={handleCancelDelete}
+                  className="px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                  style={{ backgroundColor: '#faf5ed', color: '#78716c' }}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={selectedForDelete.size === 0}
+                  className="px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95 disabled:opacity-40"
+                  style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+                >
+                  <div className="flex items-center gap-1">
+                    <Trash2 className="w-4 h-4" strokeWidth={2} />
+                    <span>{selectedForDelete.size > 0 ? `(${selectedForDelete.size})` : ''}</span>
+                  </div>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setDeleteMode(true)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+                  style={{ backgroundColor: '#faf5ed' }}
+                >
+                  <Trash2 className="w-5 h-5 text-stone-500" strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+                  style={{ backgroundColor: '#E85D2A' }}
+                >
+                  <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between mb-2">
@@ -231,20 +287,42 @@ export function PreDepartureScreen() {
 
       <div className="px-6 space-y-3">
         {items.map((item) => (
-          <div key={item.id} className="relative group">
-            <ItemCard
-              {...item}
-              onToggleCheck={() => handleToggleCheck(item.id)}
-              onPing={() => handlePing(item.id)}
-            />
-            <button
-              onClick={() => handleDeleteItem(item.id)}
-              className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-10"
-              style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
-              title="Delete item"
-            >
-              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </button>
+          <div key={item.id} className="relative">
+            {deleteMode ? (
+              <button
+                onClick={() => toggleSelectForDelete(item.id)}
+                className="w-full flex items-center gap-3 p-3 sm:p-4 rounded-2xl transition-all text-left"
+                style={{
+                  backgroundColor: selectedForDelete.has(item.id) ? '#fef2f2' : '#ffffff',
+                  border: '1px solid',
+                  borderColor: selectedForDelete.has(item.id) ? '#fca5a5' : '#e7e5e4',
+                }}
+              >
+                <div
+                  className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 border-2 transition-all"
+                  style={{
+                    borderColor: selectedForDelete.has(item.id) ? '#dc2626' : '#d6d3d1',
+                    backgroundColor: selectedForDelete.has(item.id) ? '#dc2626' : 'transparent',
+                  }}
+                >
+                  {selectedForDelete.has(item.id) && (
+                    <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                  )}
+                </div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: item.image ? 'transparent' : '#faf5ed' }}>
+                  {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-stone-900 text-sm truncate">{item.title}</h4>
+                </div>
+              </button>
+            ) : (
+              <ItemCard
+                {...item}
+                onToggleCheck={() => handleToggleCheck(item.id)}
+                onPing={() => handlePing(item.id)}
+              />
+            )}
           </div>
         ))}
       </div>

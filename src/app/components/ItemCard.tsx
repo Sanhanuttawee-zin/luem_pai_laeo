@@ -25,15 +25,15 @@ export function ItemCard({
   onToggleCheck,
   onPing,
 }: ItemCardProps) {
-  const isMissing = status === 'missing';
+  const showMissing = status === 'missing' && !checked;
 
   return (
     <div
       className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl transition-all"
       style={{
-        backgroundColor: isMissing ? '#fff1f2' : '#ffffff',
+        backgroundColor: showMissing ? '#fff1f2' : '#ffffff',
         border: '1px solid',
-        borderColor: isMissing ? '#fecdd3' : '#e7e5e4',
+        borderColor: showMissing ? '#fecdd3' : '#e7e5e4',
       }}
     >
       <div
